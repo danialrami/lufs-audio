@@ -897,11 +897,19 @@ render();
   btn.addEventListener('click',()=>{panel.classList.contains('open')?closeP():openP();});
   addEventListener('keydown',e=>{if(e.key==='Escape')closeP();});
   document.addEventListener('click',e=>{if(panel.classList.contains('open')&&!panel.contains(e.target)&&!btn.contains(e.target))closeP();});
-  function load(){
-    loading=true; results.innerHTML='<div class="hint">Loading catalog…</div>';
-    fetch(MANIFEST,{mode:'cors'}).then(r=>r.json()).then(d=>{
+  function load(attempt){
+    attempt=attempt||1; loading=true;
+    if(attempt===1) results.innerHTML='<div class="hint">Loading catalog…</div>';
+    // cache-bust so a copy cached before CORS was enabled can't poison the request; no-store keeps it fresh.
+    const url=MANIFEST+(MANIFEST.indexOf('?')<0?'?':'&')+'v='+Date.now();
+    fetch(url,{mode:'cors',cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.json();}).then(d=>{
       tracks=(d&&Array.isArray(d.tracks))?d.tracks:(Array.isArray(d)?d:[]); loaded=true; loading=false; render(q.value);
-    }).catch(()=>{loading=false; results.innerHTML='<div class="hint">Catalog unavailable right now — try again shortly.</div>';});
+    }).catch(()=>{
+      if(attempt<3){setTimeout(()=>load(attempt+1),1200);return;}   // auto-retry propagation blips
+      loading=false;
+      results.innerHTML='<div class="hint">Catalog unavailable — <span id="retry" style="color:var(--teal)">retry</span></div>';
+      const rt=document.getElementById('retry'); if(rt)rt.addEventListener('click',()=>{loaded=false;load(1);});
+    });
   }
   function render(term){
     if(!tracks) return;
