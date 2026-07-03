@@ -226,6 +226,15 @@ footer .base{margin-top:44px;display:flex;flex-wrap:wrap;justify-content:space-b
 .search .res .rc{font-size:.54rem;color:var(--faint);letter-spacing:.14em;text-transform:uppercase}
 .search .hint{font-size:.55rem;color:var(--faint);letter-spacing:.1em;text-transform:uppercase;padding:9px 6px 3px}
 @media (hover:none){.search input,.search .res{cursor:auto}}
+
+/* ---------- immersive "just the music" mode ---------- */
+.player .zbtn{flex:0 0 36px}
+.player .zbtn svg{display:block}
+.zbtn .eye-slash{opacity:0;transition:opacity .2s ease}
+body.immersive .zbtn .eye-slash{opacity:1}
+nav,main#view,footer{transition:opacity .45s ease}
+body.immersive nav,body.immersive main#view,body.immersive footer{opacity:0;pointer-events:none}
+@media (prefers-reduced-motion:reduce){nav,main#view,footer{transition:none}}
 </style>
 </head>
 <body>
@@ -280,6 +289,13 @@ footer .base{margin-top:44px;display:flex;flex-wrap:wrap;justify-content:space-b
   <div class="meta"><span class="tt" id="ptt">catalog stream</span><span class="st" id="amode">tap to enable</span></div>
   <div class="bar"><i id="pbar"></i></div>
   <button class="pbtn sbtn" id="searchBtn" data-hover aria-label="Search the catalog">⌕</button>
+  <button class="pbtn zbtn" id="zenBtn" data-hover aria-pressed="false" aria-label="Hide text — just the music">
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+      <ellipse cx="12" cy="12" rx="9.5" ry="6"></ellipse>
+      <circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none"></circle>
+      <line class="eye-slash" x1="4" y1="20" x2="20" y2="4" stroke-linecap="round"></line>
+    </svg>
+  </button>
 </div>
 
 <div class="search" id="search" aria-hidden="true">
@@ -301,6 +317,7 @@ footer .base{margin-top:44px;display:flex;flex-wrap:wrap;justify-content:space-b
   if(!window.THREE){document.body.style.background="#111";return;}
   const REDUCED=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const isLanding=()=>{const h=(location.hash||'').replace(/^#/,'')||'/';return h==='/';};
+  const immersive=()=>document.body.classList.contains('immersive');
   const canvas=document.getElementById('gl');
   const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
   renderer.setClearColor(0x111111,1);const PR=Math.min(window.devicePixelRatio||1,2);renderer.setPixelRatio(PR);
@@ -359,7 +376,7 @@ footer .base{margin-top:44px;display:flex;flex-wrap:wrap;justify-content:space-b
       ring.style.width=ring.style.height=cur+'px';
       ring.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`;
       let bass=0,eng=0; try{ bass=AUDIO.L.bass||0; eng=AUDIO.L.engage||0; }catch(e){}  // AUDIO in TDZ on first frame
-      const orbitOn=isLanding();
+      const orbitOn=isLanding()||immersive();
       orbit.style.opacity=orbitOn?1:0;
       const lvl=PV('cursorIdleScale')+(1-PV('cursorIdleScale'))*eng;
       ang+=PV('cursorOrbitSpeed')*lvl + bass*PV('cursorOrbitAudio');
@@ -504,13 +521,13 @@ footer .base{margin-top:44px;display:flex;flex-wrap:wrap;justify-content:space-b
   let hue=0;
   function frame(t,dt){
     const L=AUDIO.L,W=AUDIO.wave,a=innerWidth/innerHeight;
-    const calm=isLanding()?1:0.55;   // calmer inner pages (brand rule): dim the hero off the landing
+    const full=isLanding()||immersive(); const calm=full?1:0.55;   // calmer inner pages; immersive "just the music" mode goes full-intensity
     P.nx+=(P.tnx-P.nx)*0.07;P.ny+=(P.tny-P.ny)*0.07;
     const target=PV('colorCycle')*t + L.bass*PV('colorAudio');
     const maxStep=PV('colorSlew')*dt; let dh=target-hue; hue+=Math.max(-maxStep,Math.min(maxStep,dh));
     const ac=cyc(hue); fogMat.uniforms.uAccent.value.setRGB(ac[0],ac[1],ac[2]);
     fogMat.uniforms.uTime.value=t;fogMat.uniforms.uAspect.value=a;fogMat.uniforms.uMouse.value.set(P.nx,P.ny);
-    fogMat.uniforms.uOpacity.value=PV('fogOpacity')*calm;fogMat.uniforms.uDim.value=PV('fogBright')*(isLanding()?1:0.82);fogMat.uniforms.uDrift.value=PV('fogDrift');
+    fogMat.uniforms.uOpacity.value=PV('fogOpacity')*calm;fogMat.uniforms.uDim.value=PV('fogBright')*(full?1:0.82);fogMat.uniforms.uDrift.value=PV('fogDrift');
     fogMat.uniforms.uWarp.value=PV('fogWarp');fogMat.uniforms.uBloom.value=PV('fogBloom')*calm;fogMat.uniforms.uDensity.value=PV('fogDensity');
     fogMat.uniforms.uBass.value=L.bass;fogMat.uniforms.uEnergy.value=L.energy;
     const pts=Math.round(PV('scopePoints')), gain=PV('scopeGain'), idleF=Math.max(0,1.0-L.rms*7.0);
@@ -932,6 +949,22 @@ render();
       results.querySelectorAll('.res').forEach(r=>r.classList.toggle('on',r.getAttribute('data-id')===id));
     }
   });
+})();
+</script>
+
+<!-- ============================ IMMERSIVE "just the music" toggle ============================
+     Fades the text layers (nav / routed view / footer) so only the reactive background + player
+     remain — for listening. Own <script> block; toggles a body class the hero reads for full intensity. -->
+<script>
+(function(){
+  const b=document.getElementById('zenBtn'); if(!b)return;
+  function set(on){
+    document.body.classList.toggle('immersive',on);
+    b.setAttribute('aria-pressed',on?'true':'false');
+    b.setAttribute('aria-label',on?'Show text':'Hide text — just the music');
+  }
+  b.addEventListener('click',()=>set(!document.body.classList.contains('immersive')));
+  addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('immersive'))set(false);});
 })();
 </script>
 </body>
