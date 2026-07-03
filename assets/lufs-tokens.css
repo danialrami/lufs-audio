@@ -1,0 +1,82 @@
+/* =============================================================
+   LUFS / Daniel Ramirez — Design Tokens + Core Components
+   Drop-in stylesheet for the brand's dark-editorial web language.
+   Pair with: Google Fonts (Host Grotesk + Public Sans + Space Mono).
+   ============================================================= */
+:root{
+  /* Brand spectrum */
+  --teal:#78BEBA;     /* primary accent — does most of the work */
+  --red:#D35233;      /* rust/secondary */
+  --yellow:#E7B225;   /* gold/tertiary */
+  --blue:#2069af;     /* quaternary */
+  /* Ground + text */
+  --black:#111111;    /* primary ground */
+  --cream:#fbf9e2;    /* primary text (LUFS light key alt: #E2E3D8) */
+  --muted:rgba(251,249,226,.62);
+  --dim:rgba(251,249,226,.12);   /* hairlines / borders */
+  /* Muted personal "Daniel Ramirez." palette (employer identity) */
+  --p-gold:#D9A23D; --p-sage:#8C8A6B; --p-dusty:#9FC1D0; --p-cream:#E8E4D4; --p-terra:#C8654A; --p-ink:#222222;
+  /* Type */
+  --display:'Host Grotesk',-apple-system,sans-serif;
+  --body:'Public Sans',sans-serif;
+  --mono:'Space Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--body);background:var(--black);color:var(--cream);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+
+/* ---- Type scale ---- */
+h1.hero{font-family:var(--display);font-weight:800;letter-spacing:-.03em;line-height:.92;font-size:clamp(3.4rem,13vw,9.5rem)}
+h2.big{font-family:var(--display);font-weight:800;letter-spacing:-.02em;line-height:1.04;font-size:clamp(1.9rem,5vw,3.2rem)}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.3em;text-transform:uppercase;color:var(--teal)}
+.lead{font-size:clamp(1.02rem,1.5vw,1.2rem);max-width:64ch;color:var(--cream)}
+.quote{font-style:italic;color:var(--teal);border-left:3px solid var(--teal);padding:6px 0 6px 20px;max-width:60ch}
+.sec-label{font-family:var(--mono);font-size:.7rem;letter-spacing:.26em;text-transform:uppercase;color:var(--teal);display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.sec-label::after{content:"";flex:1;height:1px;background:var(--dim);max-width:120px}
+
+/* ---- Layout ---- */
+section{padding:clamp(64px,11vh,140px) clamp(20px,6vw,80px);position:relative}
+.grid{display:grid;gap:16px}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:820px){.g3{grid-template-columns:1fr 1fr}}
+@media(max-width:540px){.g3,.g2{grid-template-columns:1fr}}
+
+/* ---- Components ---- */
+.panel{background:rgba(12,12,12,.74);backdrop-filter:blur(10px);border:1px solid var(--dim);border-radius:20px;padding:clamp(26px,5vw,56px)}
+.card{padding:24px;border-radius:15px;border:1px solid var(--dim);background:rgba(255,255,255,.02);transition:.25s}
+.card:hover{transform:translateY(-4px);border-color:var(--teal);background:rgba(120,190,186,.05)}
+.card .k{font-family:var(--mono);font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);margin-bottom:10px}
+.card h3{font-family:var(--display);font-weight:700;font-size:1.12rem;margin-bottom:8px}
+.card p{color:var(--muted);font-size:.93rem}
+.chip{font-family:var(--display);font-weight:600;font-size:1.02rem;padding:11px 20px;border:1px solid var(--dim);border-radius:40px;display:inline-block}
+.chip span{display:block;font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:400;margin-top:3px}
+.stat .n{font-family:var(--display);font-weight:800;font-size:clamp(2.2rem,5vw,3.4rem);color:var(--teal);line-height:1;letter-spacing:-.02em}
+.stat.y .n{color:var(--yellow)} .stat.r .n{color:var(--red)}
+.stat .l{font-family:var(--mono);font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-top:9px;max-width:18ch}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}
+.tag{font-family:var(--mono);font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border:1px solid var(--dim);border-radius:20px;padding:4px 9px}
+.btn{font-family:var(--mono);font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;padding:13px 24px;border:1px solid var(--teal);border-radius:40px;background:rgba(120,190,186,.05);transition:.2s;display:inline-block}
+.btn:hover{background:var(--teal);color:var(--black)}
+.btn.ghost{border-color:var(--dim)}.btn.ghost:hover{border-color:var(--cream);background:transparent;color:var(--cream)}
+
+/* ---- Nav + footer ---- */
+nav{position:fixed;top:0;left:0;width:100%;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:20px clamp(20px,5vw,64px);mix-blend-mode:difference}
+.brand{font-family:var(--display);font-weight:800;font-size:1.25rem;letter-spacing:-.02em}
+.brand .dot{color:var(--teal)}
+.navlinks{display:flex;gap:clamp(14px,2.2vw,32px);font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase}
+.navlinks a{opacity:.7;transition:opacity .2s;padding-bottom:3px;border-bottom:1px solid transparent}
+.navlinks a:hover{opacity:1}.navlinks a.active{opacity:1;border-color:var(--teal)}
+footer{padding:30px clamp(20px,6vw,80px);border-top:1px solid var(--dim);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-family:var(--mono);font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.squares{display:flex;gap:5px}.squares i{width:11px;height:11px;border-radius:2px;display:block}
+/* four-square mark order: yellow, teal, blue, red */
+
+/* ---- Custom cursor (hide on touch) ---- */
+.cur-dot,.cur-ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;z-index:9999;mix-blend-mode:difference}
+.cur-dot{width:6px;height:6px;background:var(--cream);transform:translate(-50%,-50%)}
+.cur-ring{width:34px;height:34px;border:1px solid rgba(251,249,226,.7);transform:translate(-50%,-50%);transition:width .2s,height .2s,border-color .2s,background .2s}
+.cur-ring.hot{width:54px;height:54px;border-color:var(--teal);background:rgba(120,190,186,.08)}
+@media(hover:none){.cur-dot,.cur-ring{display:none}body{cursor:auto}}
+
+/* ---- Scroll reveal (ALWAYS pair with the JS force-show fallback) ---- */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .6s cubic-bezier(.2,.7,.2,1),transform .6s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}}
