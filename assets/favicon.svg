@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" fill="#111111"/>
+  <!-- vectorscope: mono vertical guide + Lissajous lobe (teal leads) -->
+  <rect x="15" y="4" width="2" height="21" fill="#78BEBA" opacity="0.45"/>
+  <ellipse cx="16" cy="14.5" rx="5" ry="9" fill="none" stroke="#78BEBA" stroke-width="2"/>
+  <!-- four-color pixel cells: gold, teal, blue, rust -->
+  <rect x="6"  y="27" width="3" height="3" fill="#E7B225"/>
+  <rect x="12" y="27" width="3" height="3" fill="#78BEBA"/>
+  <rect x="18" y="27" width="3" height="3" fill="#2069af"/>
+  <rect x="24" y="27" width="3" height="3" fill="#D35233"/>
+</svg>
