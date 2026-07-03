@@ -208,6 +208,24 @@ footer .base{margin-top:44px;display:flex;flex-wrap:wrap;justify-content:space-b
 .dials .acts{display:flex;gap:8px;margin-top:12px;border-top:1px solid var(--dim);padding-top:12px}
 .dials .acts .btn{flex:1;justify-content:center;font-size:.55rem;padding:8px 10px}
 .dials textarea{width:100%;height:74px;margin-top:10px;background:#0c0c0c;border:1px solid var(--dim);border-radius:8px;color:var(--teal);font-family:"Space Mono",monospace;font-size:.52rem;padding:8px;resize:none;cursor:text}
+
+/* ---------- catalog search (Phase D) ---------- */
+.player .sbtn{font-size:.95rem;flex:0 0 36px}
+.search{position:fixed;left:clamp(14px,3vw,30px);bottom:calc(clamp(14px,3vh,26px) + 62px);z-index:56;width:min(360px,86vw);
+  background:rgba(10,10,10,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--dim);border-radius:16px;
+  padding:12px;font-family:"Space Mono",monospace;opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s ease;display:none}
+.search.open{opacity:1;transform:none;pointer-events:auto;display:block}
+.search input{width:100%;background:#0c0c0c;border:1px solid var(--dim);border-radius:10px;color:var(--cream);
+  font-family:"Space Mono",monospace;font-size:.66rem;letter-spacing:.08em;padding:10px 12px;outline:none;cursor:text}
+.search input:focus{border-color:var(--teal)}
+.search .results{margin-top:10px;max-height:44vh;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.search .res{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:8px;cursor:none;transition:.15s ease;border:1px solid transparent}
+.search .res:hover{background:rgba(120,190,186,.08);border-color:var(--dim)}
+.search .res.on{background:rgba(120,190,186,.14);border-color:var(--teal)}
+.search .res .rt{font-family:"Public Sans",sans-serif;font-weight:500;font-size:.82rem;color:var(--cream);line-height:1.25}
+.search .res .rc{font-size:.54rem;color:var(--faint);letter-spacing:.14em;text-transform:uppercase}
+.search .hint{font-size:.55rem;color:var(--faint);letter-spacing:.1em;text-transform:uppercase;padding:9px 6px 3px}
+@media (hover:none){.search input,.search .res{cursor:auto}}
 </style>
 </head>
 <body>
@@ -259,8 +277,14 @@ footer .base{margin-top:44px;display:flex;flex-wrap:wrap;justify-content:space-b
 
 <div class="player">
   <button class="pbtn" id="play" data-hover aria-label="Enable audio"><span id="ico">▶</span><span id="plab">Enable</span></button>
-  <div class="meta"><span class="tt">catalog stream</span><span class="st" id="amode">tap to enable</span></div>
+  <div class="meta"><span class="tt" id="ptt">catalog stream</span><span class="st" id="amode">tap to enable</span></div>
   <div class="bar"><i id="pbar"></i></div>
+  <button class="pbtn sbtn" id="searchBtn" data-hover aria-label="Search the catalog">⌕</button>
+</div>
+
+<div class="search" id="search" aria-hidden="true">
+  <input id="q" type="text" placeholder="Search catalog — 103 tracks" autocomplete="off" spellcheck="false" aria-label="Search catalog">
+  <div class="results" id="results"></div>
 </div>
 
 <div class="dials" id="panel"></div>
@@ -351,7 +375,8 @@ footer .base{margin-top:44px;display:flex;flex-wrap:wrap;justify-content:space-b
 
   /* ---------- AUDIO: stereo + bands + centroid + wave, calm idle (no beat sim) ---------- */
   const AUDIO=(function(){
-    const STREAM="https://stream.lufsaud.io/api/stream/lufs-59b422dd",N=2048;
+    const STREAM_BASE="https://stream.lufsaud.io/api/stream/",DEFAULT_ID="lufs-59b422dd",N=2048;
+    let STREAM=STREAM_BASE+DEFAULT_ID;
     let el=null,ctx=null,full=null,anL=null,anR=null,splitter=null,src=null,fb=null,tL=null,tR=null,corsOK=null,playing=false;
     const L={bass:0,mid:0,treble:0,energy:0,centroid:0.5,rms:0,live:false,engage:0};
     const wave={L:new Float32Array(N),R:new Float32Array(N),n:N};
@@ -360,7 +385,7 @@ footer .base{margin-top:44px;display:flex;flex-wrap:wrap;justify-content:space-b
       statEl.innerHTML=L.live?'<span class="live">● live · catalog stream</span>':'<span class="idle">◐ buffering…</span>'; }
     fetch(STREAM,{method:'GET',headers:{Range:'bytes=0-1'},mode:'cors'}).then(r=>{corsOK=(r.status===206||r.status===200);}).catch(()=>{corsOK=false;});
     function buildEl(u){el=new Audio();el.loop=true;el.preload='auto';if(u)el.crossOrigin='anonymous';el.src=STREAM;return el;}
-    function toggle(){
+    function ensureGraph(){
       if(!el)buildEl(corsOK!==false);
       if(!ctx&&corsOK!==false){try{const AC=window.AudioContext||window.webkitAudioContext;ctx=new AC();
         full=ctx.createAnalyser();full.fftSize=1024;full.smoothingTimeConstant=.8;fb=new Uint8Array(full.frequencyBinCount);
@@ -369,8 +394,22 @@ footer .base{margin-top:44px;display:flex;flex-wrap:wrap;justify-content:space-b
         src.connect(full);full.connect(ctx.destination);src.connect(splitter);splitter.connect(anL,0);splitter.connect(anR,1);
       }catch(e){full=null;}}
       if(ctx&&ctx.state==='suspended')ctx.resume();
+    }
+    function updBtn(){document.getElementById('ico').textContent=playing?'❚❚':'▶';document.getElementById('plab').textContent=playing?'Pause':'Enable';}
+    function toggle(){
+      ensureGraph();
       if(playing){el.pause();playing=false;}else{const p=el.play();if(p&&p.catch)p.catch(()=>{});playing=true;}
-      document.getElementById('ico').textContent=playing?'❚❚':'▶';document.getElementById('plab').textContent=playing?'Pause':'Enable';setStat();
+      updBtn();setStat();
+    }
+    // play a specific catalog track by id (used by catalog search); same element/graph, so the
+    // analyser keeps driving the hero and audio survives navigation.
+    function playId(id,title){
+      if(!id)return; STREAM=STREAM_BASE+encodeURIComponent(id);
+      ensureGraph();
+      try{el.src=STREAM;el.load();}catch(e){}
+      const p=el.play();if(p&&p.catch)p.catch(()=>{});playing=true;
+      const tt=document.getElementById('ptt');if(tt&&title)tt.textContent=title;
+      updBtn();setStat();
     }
     function band(a,lo,hi){let s=0,n=0;for(let i=lo;i<hi&&i<a.length;i++){s+=a[i];n++;}return n?s/n/255:0;}
     function readFloat(an,arr){if(an.getFloatTimeDomainData)an.getFloatTimeDomainData(arr);else{const b=new Uint8Array(arr.length);an.getByteTimeDomainData(b);for(let i=0;i<arr.length;i++)arr[i]=(b[i]-128)/128;}}
@@ -398,8 +437,9 @@ footer .base{margin-top:44px;display:flex;flex-wrap:wrap;justify-content:space-b
       setStat();
     }
     document.getElementById('play').addEventListener('click',toggle);
-    return {L,wave,update,get playing(){return playing;}};
+    return {L,wave,update,toggle,playId,get playing(){return playing;}};
   })();
+  window.AUDIO=AUDIO;   // exposed so the catalog-search block can drive playback
 
   /* ---------- GLSL ---------- */
   const NOISE=`
@@ -838,6 +878,53 @@ function render(){
 }
 addEventListener('hashchange',render);
 render();
+</script>
+
+<!-- ============================ CATALOG SEARCH (Phase D) ============================
+     Fetches the public catalog manifest (CORS enabled via the catalog repo's .htaccess) and
+     plays any track by id through window.AUDIO.playId — so a selection keeps the analyser driving
+     the hero and survives navigation. Own <script> block: a fetch failure can't affect the shell. -->
+<script>
+(function(){
+  const btn=document.getElementById('searchBtn'), panel=document.getElementById('search'),
+        q=document.getElementById('q'), results=document.getElementById('results');
+  if(!btn||!panel||!q||!results) return;
+  const MANIFEST="https://catalog.lufs.audio/stream-manifest.json";
+  let tracks=null, loaded=false, loading=false, activeId=null;
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+  function openP(){panel.classList.add('open');panel.setAttribute('aria-hidden','false');q.focus();if(!loaded&&!loading)load();}
+  function closeP(){panel.classList.remove('open');panel.setAttribute('aria-hidden','true');}
+  btn.addEventListener('click',()=>{panel.classList.contains('open')?closeP():openP();});
+  addEventListener('keydown',e=>{if(e.key==='Escape')closeP();});
+  document.addEventListener('click',e=>{if(panel.classList.contains('open')&&!panel.contains(e.target)&&!btn.contains(e.target))closeP();});
+  function load(){
+    loading=true; results.innerHTML='<div class="hint">Loading catalog…</div>';
+    fetch(MANIFEST,{mode:'cors'}).then(r=>r.json()).then(d=>{
+      tracks=(d&&Array.isArray(d.tracks))?d.tracks:(Array.isArray(d)?d:[]); loaded=true; loading=false; render(q.value);
+    }).catch(()=>{loading=false; results.innerHTML='<div class="hint">Catalog unavailable right now — try again shortly.</div>';});
+  }
+  function render(term){
+    if(!tracks) return;
+    term=(term||'').trim().toLowerCase();
+    const list=term?tracks.filter(t=>((t.title||'')+' '+(t.collection||'')).toLowerCase().includes(term)):tracks;
+    const shown=list.slice(0,60);
+    if(!shown.length){results.innerHTML='<div class="hint">No matches.</div>';return;}
+    results.innerHTML=shown.map(t=>{
+      const id=t.id||t.slug||'';
+      return `<div class="res${id===activeId?' on':''}" data-id="${esc(id)}" data-title="${esc(t.title||id)}" data-hover>`+
+             `<span class="rt">${esc(t.title||id)}</span><span class="rc">${esc(t.collection||'')}</span></div>`;
+    }).join('') + (list.length>shown.length?`<div class="hint">${list.length-shown.length} more — refine your search</div>`:'');
+  }
+  q.addEventListener('input',()=>render(q.value));
+  results.addEventListener('click',e=>{
+    const row=e.target.closest('.res'); if(!row)return;
+    const id=row.getAttribute('data-id'), title=row.getAttribute('data-title');
+    if(id&&window.AUDIO&&window.AUDIO.playId){
+      window.AUDIO.playId(id,title); activeId=id;
+      results.querySelectorAll('.res').forEach(r=>r.classList.toggle('on',r.getAttribute('data-id')===id));
+    }
+  });
+})();
 </script>
 </body>
 </html>
