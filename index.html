@@ -234,7 +234,14 @@ footer .base{margin-top:44px;display:flex;flex-wrap:wrap;justify-content:space-b
 body.immersive .zbtn .eye-slash{opacity:1}
 nav,main#view,footer{transition:opacity .45s ease}
 body.immersive nav,body.immersive main#view,body.immersive footer{opacity:0;pointer-events:none}
+body.immersive{overflow:hidden}   /* just the music: no scroll/verticality, footer gone */
 @media (prefers-reduced-motion:reduce){nav,main#view,footer{transition:none}}
+
+/* ---------- player minimize / expand ---------- */
+.player .mbtn{flex:0 0 36px}
+.player .mbtn svg{display:block}
+.player.min{padding:6px;gap:0}
+.player.min > :not(#minBtn){display:none}
 </style>
 </head>
 <body>
@@ -295,6 +302,9 @@ body.immersive nav,body.immersive main#view,body.immersive footer{opacity:0;poin
       <circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none"></circle>
       <line class="eye-slash" x1="4" y1="20" x2="20" y2="4" stroke-linecap="round"></line>
     </svg>
+  </button>
+  <button class="pbtn mbtn" id="minBtn" data-hover aria-label="Minimize player">
+    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><line x1="6" y1="12" x2="18" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line></svg>
   </button>
 </div>
 
@@ -960,11 +970,30 @@ render();
   const b=document.getElementById('zenBtn'); if(!b)return;
   function set(on){
     document.body.classList.toggle('immersive',on);
+    if(on) scrollTo(0,0);   // no scroll/verticality in "just the music" mode
     b.setAttribute('aria-pressed',on?'true':'false');
     b.setAttribute('aria-label',on?'Show text':'Hide text — just the music');
   }
   b.addEventListener('click',()=>set(!document.body.classList.contains('immersive')));
   addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('immersive'))set(false);});
+})();
+</script>
+
+<!-- ============================ PLAYER MINIMIZE / EXPAND ============================
+     Collapses the corner widget to a single button (the LUFS four-square mark); click to re-expand.
+     Expanded by default on load. Own <script> block. -->
+<script>
+(function(){
+  const player=document.querySelector('.player'), mb=document.getElementById('minBtn');
+  if(!player||!mb)return;
+  const DASH='<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><line x1="6" y1="12" x2="18" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line></svg>';
+  const MARK='<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.6" fill="#E7B225"></rect><rect x="13" y="4" width="7" height="7" rx="1.6" fill="#78BEBA"></rect><rect x="4" y="13" width="7" height="7" rx="1.6" fill="#2069af"></rect><rect x="13" y="13" width="7" height="7" rx="1.6" fill="#D35233"></rect></svg>';
+  mb.addEventListener('click',()=>{
+    const min=player.classList.toggle('min');
+    mb.innerHTML=min?MARK:DASH;
+    mb.setAttribute('aria-label',min?'Expand player':'Minimize player');
+    if(min){const s=document.getElementById('search');if(s)s.classList.remove('open');}
+  });
 })();
 </script>
 </body>

@@ -1,11 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" fill="#111111"/>
-  <!-- vectorscope: mono vertical guide + Lissajous lobe (teal leads) -->
-  <rect x="15" y="4" width="2" height="21" fill="#78BEBA" opacity="0.45"/>
-  <ellipse cx="16" cy="14.5" rx="5" ry="9" fill="none" stroke="#78BEBA" stroke-width="2"/>
-  <!-- four-color pixel cells: gold, teal, blue, rust -->
-  <rect x="6"  y="27" width="3" height="3" fill="#E7B225"/>
-  <rect x="12" y="27" width="3" height="3" fill="#78BEBA"/>
-  <rect x="18" y="27" width="3" height="3" fill="#2069af"/>
-  <rect x="24" y="27" width="3" height="3" fill="#D35233"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 100">
+  <!-- LUFS synth-console mark (the v1 lufs.audio logo): modulation-curve panel + four-color buttons -->
+  <rect x="6" y="10" width="108" height="80" rx="9" fill="#d7d9cc"/>
+  <!-- upper slot: sequencer / modulation curve -->
+  <rect x="14" y="20" width="92" height="30" rx="4" fill="#ffffff"/>
+  <path d="M34 34 C 42 25, 49 45, 57 36 S 69 30, 72 41" fill="none" stroke="#d7d9cc" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="27" cy="33" r="6.5" fill="#d7d9cc"/><circle cx="27" cy="33" r="2.6" fill="#ffffff"/>
+  <circle cx="75" cy="42" r="5.5" fill="#d7d9cc"/><circle cx="75" cy="42" r="2.2" fill="#ffffff"/>
+  <circle cx="94" cy="34" r="8.5" fill="#d7d9cc"/>
+  <!-- lower slot: four-color buttons (gold, teal, blue, rust) -->
+  <rect x="14" y="58" width="92" height="24" rx="4" fill="#ffffff"/>
+  <rect x="20" y="63" width="14" height="14" rx="3.2" fill="#E7B225"/>
+  <rect x="42" y="63" width="14" height="14" rx="3.2" fill="#78BEBA"/>
+  <rect x="64" y="63" width="14" height="14" rx="3.2" fill="#2069af"/>
+  <rect x="86" y="63" width="14" height="14" rx="3.2" fill="#D35233"/>
 </svg>
