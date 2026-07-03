@@ -1,0 +1,12 @@
+# os / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# node (only if a build step is added later)
+node_modules/
+dist/
+.cache/
+*.log
